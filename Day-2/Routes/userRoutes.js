@@ -4,8 +4,46 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
     try {
-        const getUser = await User.find();
-        res.json(getUser);
+        // Filtering and Pagination
+        const {search, city, sort, order, page, limit} = req.query;
+
+        let filter = {};
+
+        if(city){
+            filter.city = city;
+        }
+        
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { city: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        let sortOption = {};
+        if (sort) {
+            sortOption[sort] = order === "desc" ? -1 : 1;
+        }
+
+         const pageNum = Number(page) || 1;    // Default = page 1
+        const limitNum = Number(limit) || 10; // Default = 10 docs per page
+        const skip = (pageNum - 1) * limitNum;
+
+        const users = await User.find(filter)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await User.countDocuments(filter);
+
+        res.json({
+            total,
+            page: pageNum,
+            limit: limitNum,
+            results: users.length,
+            users
+        });
     } 
     catch (error) {
         res.status(500).json({error: error.message});

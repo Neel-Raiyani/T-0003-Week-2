@@ -1,6 +1,5 @@
 const express = require('express');
 const connectDB = require('./Config/db');
-//const User = require('./Models/User');
 const userRoutes = require('./Routes/userRoutes');
 require('dotenv').config();
 
@@ -24,7 +23,7 @@ const logger = (req, res, next) => {
 app.use(express.json());
 app.use(logger);
 
-app.use('/api/users', userRoutes);
+app.use('/api/v1/users', userRoutes);
 
 app.listen(port,() => {
     console.log(`App listening on http://localhost:${port}`)
